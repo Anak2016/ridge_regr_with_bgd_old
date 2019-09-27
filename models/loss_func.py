@@ -1,6 +1,6 @@
 import sys,os
 USER = os.environ['USERPROFILE']
-sys.path.insert(1,f'{USER}\\PycharmProjects\\my_utility')
+#sys.path.insert(1,f'{USER}\\PycharmProjects\\my_utility')
 
 from utility_code.my_utility import *
 from utility_code.python_lib_essential import *
@@ -17,8 +17,22 @@ class MSE:
         self.l1 = l1
         self.bs = batch_size
 
+    def run(self):
+        '''refactor code later'''
+        y = Matrix(self.y)
+        x = Matrix(self.x)
+        beta_sym = symbols(f'beta0:{self.beta.shape[1]}')  # BETA = tuple of length = 1 * p
+        beta = Matrix(np.array(beta_sym))
 
-    def run(self, loop_num):
+        loss_func = (y - (x * beta)) * ones(beta.shape[1], 1)
+        loss_func = ones(1, loss_func.shape[0]) * square_matrix_element_wise(loss_func) / 400  # mean
+        # loss_func = ones(1, loss_func.shape[0]) * square_matrix_element_wise(loss_func)  # mean
+        # loss_func = np.random.rand(1,1)
+
+        penalty = self.lmda * (ones(1, beta.shape[0]) * square_matrix_element_wise(beta)) if self.l1 else 0
+        return loss_func + penalty
+
+    def run_batch(self, loop_num):
         # check if learned val is one of learnable param in func
         i = loop_num
         s = (i) * self.bs

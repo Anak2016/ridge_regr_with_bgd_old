@@ -36,8 +36,32 @@ def setup_essential(ROOT_DIR =None, ignore_root=False):
 #==plotting
 #=====================
 def plot_figures(config, save_path=None, file_name=None):
-    file_name = file_name.split('.')[:-1]
-    file_name = '/'.join(file_name) + ".png"
+    '''
+    config exmple
+            config = {
+            "loss history": {
+                'x_label': 'False Positive Rate',
+                'y_label': 'loss values',
+                'legend': [{"kwargs": {"loc": "lower right"}}],
+                'plot': [{"args": [range(len(loss_hist)), loss_hist]}]
+            },
+            "accuracy history": {
+                'x_label': 'False Positive Rate',
+                'y_label': 'accuracy values',
+                'legend': [{"kwargs": {"loc": "lower right"}}],
+                'plot': [{"args": [range(len(train_acc_hist)), train_acc_hist]},
+                         {"args": [range(len(test_acc_hist)), test_acc_hist]},
+                         ]
+            },
+        }
+    :param config:
+    :param save_path:
+    :param file_name:
+    :return:
+    '''
+    if file_name is not None:
+        file_name = file_name.split('.')[:-1]
+        file_name = '/'.join(file_name) + ".png"
     print(f"save plot to {save_path}{file_name}...")
     num_fig = len(config.keys())
 
@@ -75,13 +99,17 @@ def plot_figures(config, save_path=None, file_name=None):
         2. config keywords that does not have args or kwargs 
             eg x_lim 
         '''
+
         if num_row == 1 and num_col == 1:
             plot_args = v.get('plot', [{'args': []}])
             plot_kwargs = v.get('plot', [{'kwargs': []}])
             legend_kwargs = v.get('legend', [{'kwargs': []}])
 
             for i, j, k in zip(plot_args, plot_kwargs, legend_kwargs):
-                axes.plot(*i.get('args', []), **j.get('kwargs', {}))
+                if v.get('plot_style', None) is None:
+                    axes.plot(*i.get('args', []), **j.get('kwargs', {}))
+                if v.get('plot_style', None) == 'scatter':
+                    axes.scatter(*i.get('args', []), **j.get('kwargs', {}))
                 axes.legend(**k.get('kwargs', {}))
 
             if x_lim is not None:
@@ -97,7 +125,10 @@ def plot_figures(config, save_path=None, file_name=None):
             legend_kwargs = v.get('legend', [{'kwargs': []}])
 
             for i, j, k in zip(plot_args, plot_kwargs, legend_kwargs):
-                axes[col].plot(*i.get('args', []), **j.get('kwargs', {}))
+                if v.get('plot_style', None) is None:
+                    axes[col].plot(*i.get('args', []), **j.get('kwargs', {}))
+                if v.get('plot_style', None) == 'scatter':
+                    axes[col].scatter(*i.get('args', []), **j.get('kwargs', {}))
                 axes[col].legend(**k.get('kwargs', {}))
 
             if x_lim is not None:
@@ -113,7 +144,12 @@ def plot_figures(config, save_path=None, file_name=None):
             legend_kwargs = v.get('legend', [{'kwargs': []}])
 
             for i, j, k in zip(plot_args, plot_kwargs, legend_kwargs):
-                axes[row, col].plot(*i.get('args', []), **j.get('kwargs', {}))
+                #TODO here>>  add option to select plto style from plot to scatter
+                # > add functionality to except more than 1 data pair to be plot on the same figure
+                if v.get('plot_style', None) is None:
+                    axes[row, col].plot(*i.get('args', []), **j.get('kwargs', {}))
+                if v.get('plot_style', None).lower() == "scatter":
+                    axes[row, col].scatter(*i.get('args', []), **j.get('kwargs', {}))
                 axes[row, col].legend(**k.get('kwargs', {}))
 
             if x_lim is not None:
@@ -124,9 +160,8 @@ def plot_figures(config, save_path=None, file_name=None):
             axes[row, col].set_ylabel(y_label)
             axes[row, col].set_title(title)
 
-    os.makedirs(f'{save_path}', exist_ok=True)
-
     if save_path is not None:
+        os.makedirs(f'{save_path}', exist_ok=True)
         print(f"writing to {save_path}{file_name}")
         plt.savefig(f'{save_path}{file_name}')
     plt.show()

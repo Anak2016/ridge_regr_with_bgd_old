@@ -1,6 +1,6 @@
 import sys,os
 USER = os.environ['USERPROFILE']
-sys.path.insert(1,f'{USER}\\PycharmProjects\\my_utility')
+#sys.path.insert(1,f'{USER}\\PycharmProjects\\my_utility')
 
 from utility_code.my_utility import *
 from utility_code.python_lib_essential import *
@@ -11,8 +11,9 @@ from arg_parser import *
 from data import CreditData
 
 class MessagePassing():
-    def __init__(self, x, loss_func=None, batch_size=None, epochs=None, *args, **kwargs):
+    def __init__(self, x, y, loss_func=None, batch_size=None, epochs=None, *args, **kwargs):
         self.register_params = {}
+        self.y = y
         self.loss_func = loss_func # loss_func
         self.bs = batch_size
         self.data = x
@@ -28,33 +29,50 @@ class MessagePassing():
             self.register_params[f'var_{i}'] = {'name': k,'val':v, 'diff_val': None} # is this the best datastrcuture to be used?
         # display2screen(self.register_params)
 
-    def get_loss_val(self, loop_num, all_params=None):
-        all_params = {name: val for name, val in all_params.items()}
-        loss_val = self.loss_func.run(loop_num).subs([(name, val) for name, val in all_params.items()])
+    # def get_loss_val(self, loop_num, all_params=None):
+    #     '''get rid of all_params'''
+    #     all_params = {name: val for name, val in all_params.items()}
+    #     loss_val = self.loss_func.run(loop_num).subs([(name, val) for name, val in all_params.items()])
+    #     return loss_val
+
+    def get_loss_val(self, loop_num):
+        '''refactor code get_loss_val and differentiate FOR NOW THIS IS FOR READBILIT AND DEBUGGIN'''
+        all_params = {f"{v['name']}{i}": v['val'][i] for k, v in self.register_params.items() for i in
+                                  range(0, v['val'].shape[0])}
+        # all_params = {name: val for name, val in all_params.items()}
+        loss_val = self.loss_func.run_batch(loop_num).subs([(name, val) for name, val in all_params.items()])
         return loss_val
 
     def step(self, val, diff_val):
         return val - diff_val * args.lr
+    def write2file(self,save_path):
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        np.savetxt(save_path,np.array(self.loss_val_hist).squeeze())
+
 
     def backward_batch(self, loop_num, epoch_num, cv_num):
         i = loop_num
-        all_params = {f"{v['name']}{i}" : {"val":v['val'][i], "diff_val":None} for k,v in self.register_params.items() for i in range(0,v['val'].shape[0])}
+        # all_params = {f"{v['name']}{i}" : {"val":v['val'][i], "diff_val":None} for k,v in self.register_params.items() for i in range(0,v['val'].shape[0])}
+        # all_params_no_diff_val = {f"{v['name']}{i}" : v['val'][i]for k,v in self.register_params.items() for i in range(0,v['val'].shape[0])}
+
         # print(f"epoch_num={epoch_num} loop={loop_num}; val= {self.register_params['var_0']['val']}")
-        all_params_no_diff_val = {f"{v['name']}{i}" : v['val'][i]for k,v in self.register_params.items() for i in range(0,v['val'].shape[0])}
 
         for k, v in self.register_params.items():
             if k.startswith('var_'):
-                reconstruct_diff_vals = []
                 #TODO here>>  create derivative equation of diff_val
-                # > is number of feature correct 10 or 11?? it is 9
                 #       >> why is it diverging??
-                v['diff_val'] =   2 * (self.data * np.expand_dims(self.data.dot(v["val"]), axis=1) + 2 * args.lmda * v["val"].squeeze()).sum(axis =0)
+                #       >> did i normalized this?
+                # v['diff_val'] =   2 * (self.data * np.expand_dims(self.data.dot(v["val"]), axis=1) + 2 * args.lmda * v["val"].squeeze()).sum(axis =0)
+                v['diff_val'] =  - (2 * (self.y - data.dot(v["val"].T)).dot(data) + 2 * args.lmda * v['val']) # this is wrong
+                # v['diff_val'] = np.empty_like(v['diff_val']).astype(np.float64)
+                #                 # print(v['diff_val'])
                 self.register_params[k]['val'] = self.step(v['val'], v['diff_val'])  # update beta value
-                # print()
-        if epoch_num == 1:
-            pass
-        loss_val = np.array(self.get_loss_val(loop_num, all_params = all_params_no_diff_val)).squeeze()
+
+        loss_val = np.array(self.get_loss_val(loop_num)).squeeze()
         self.loss_val_hist.append(loss_val)
+        self.loss_val = loss_val
+
+
         if args.verbose:
             print(f'cv={cv_num}, epoch={epoch_num}, batch={self.bs}'
                   f'    ==> {i * self.bs}: loss_val={loss_val}')
@@ -117,7 +135,17 @@ class MessagePassing():
         for i in range(0, batch_loop ):
             self.backward_batch(i, epoch, cv_num)
 
-        return {v['name']: v['val'] for k,v in self.register_params.items()}
+        # --------write2file
+        save_path = f'/log/loss_val/bs={args.bs}_epochs={args.epochs}_cv={args.cv}/loss_val_lr={args.lr}_lmda={args.lmda}.txt'
+        self.write2file(save_path)
+
+        # self.loss_val
+        self.output = {v['name']: v['val'] for k,v in self.register_params.items()}
+        self.output.update({'loss_val':self.loss_val})
+
+
+        return self.output
+        # return {'loss_val': self.loss_func}.items()
 
 
 class RidgeRegression(MessagePassing):
@@ -136,12 +164,12 @@ class RidgeRegression(MessagePassing):
         self.bs = batch_size
         self.lr = learning_rate
         self.epochs = epochs
-
+        self.loss_val = None
         # --------message_passing
         # self.message_passing = MessagePassing()
         self._initialize_parameters()
         self.loss_func = loss_func( self.y,self.x,self.beta, lmda=args.lmda, l1=True, batch_size=self.bs)
-        super(RidgeRegression, self).__init__(self.x, self.loss_func, batch_size, epochs)
+        super(RidgeRegression, self).__init__(self.x, self.y, self.loss_func, batch_size, epochs)
 
         # self.message_passing.register('a', self.beta) # register beta as a message
         self.register(beta= self.beta.squeeze()) # register beta as a message
@@ -158,14 +186,15 @@ class RidgeRegression(MessagePassing):
 
     def train(self, x ,y, cv_num):
         self.x, self.y = x, y
+        loss_epoch = []
         for epoch_num in range(0,self.epochs):
-            ridg_regr.run(epoch_num, cv_num)
+            ridg_regr.run_batch(epoch_num, cv_num)
             if args.report_performance:
-                pass
+                loss_epoch.append(self.loss_val)
+                print(f'loss_val = {self.loss_val}')
                 # report_performances()
         if args.report_performance:
-            pass
-            # report_performances()
+            print(f'loss_val = {sum(loss_epoch)/len(loss_epoch)}')
 
     def pred(self, x, y):
         '''
@@ -173,24 +202,30 @@ class RidgeRegression(MessagePassing):
         :return:
         '''
         self.x, self.y = x, y
-        self.apply_formular(x)
+        self.output = self.apply_formular(x)
+        self.pred_result = self.loss_func.run()
+        if args.verbose:
+            print(f'output = {self.output}')
         #--------compute accuracy
-        #TODO here>> report performance
         if args.report_performance:
-            pass
-            # report_performances()
+            print(f'loss_val = {self.loss_val}')
 
     def apply_formular(self,x):
         return self.x.dot(self.beta.T)
 
-    def run(self, epoch_num, cv_num):
+    def run_batch(self, epoch_num, cv_num):
         # self.forward()
         #TODO here>> check that beta is updated correctly after backward is completely.
         self.result = self.backward(epoch_num, cv_num, self.beta)
         self.update(self.result) # update value of beta
 
     def update(self, params_dict=None):
-        self.beta = [j for i, j in params_dict.items() if i == 'beta'][0]  # get beta value
+        for i,j in params_dict.items():
+            if i == 'beta':
+                self.beta = j
+            if i == 'loss_val':
+                self.loss_val = j
+        # self.beta = [j for i, j in params_dict.items() if i == 'beta'][0]  # get beta value
 
     # def forward(self):
     #     print('doing forward..')
@@ -219,6 +254,11 @@ if __name__ == '__main__':
     assert x[:, mask].mean(axis=0).sum() != 0, 'data is not centered '
     assert x[:, mask].astype(float).std(axis=0).sum() != 0, 'data is not stadalized'
     print("preprocessed data is completed !!")
+
+    if args.plot_pca:
+        from plotting import *
+        plot_pca(x)
+
     # def mean_square_error(y, x, beta, lmda=0.1, l1=True):
     # ridg_regr = RidgeRegression(data, MSE, 32, 0.1, epochs=args.epoch)
     # def __init__(self, data=None, loss_func=None, batch_size=None, learning_rate = None):

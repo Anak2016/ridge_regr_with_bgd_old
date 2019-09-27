@@ -1,0 +1,12 @@
+import numpy as np
+# def distance_metrix(x, y):
+#     '''
+#
+#     :param x: dim = n or n * 1
+#     :param y:
+#     :return:
+#     '''
+#     x = x.squeeze()
+#     y = y.squeeze()
+#     return
+#     # indices.eq(label).sum().item()/ indices.shape[0]

@@ -27,6 +27,7 @@ parser.add_argument('--epochs', type=int, default=10, help='lamda value for MSE'
 parser.add_argument('--cv', type=int, default=5, help='lamda value for MSE')
 parser.add_argument('--verbose', action='store_true', help="verbose")
 parser.add_argument('--report_performance', action='store_true', help="verbose")
+parser.add_argument('--plot_pca', action='store_true', help="verbose")
 
 #-- utilities
 

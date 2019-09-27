@@ -1,6 +1,6 @@
 import sys,os
 USER = os.environ['USERPROFILE']
-sys.path.insert(1,f'{USER}\\PycharmProjects\\my_utility')
+#sys.path.insert(1,f'{USER}\\PycharmProjects\\my_utility')
 
 from utility_code.my_utility import *
 from utility_code.python_lib_essential import *
@@ -17,7 +17,7 @@ def differentiate(loss_func, loop_num, learned_param_name=None, all_params=None,
     '''differnetiate loss function with respecto var'''
     param = symbols(f'{learned_param_name}')
     all_params = {name:val for name, val in all_params.items()}
-    diff_loss_val = diff(loss_func.run(loop_num), f"{param}").subs([(name, val) for name, val in all_params.items()])
+    diff_loss_val = diff(loss_func.run_batch(loop_num), f"{param}").subs([(name, val) for name, val in all_params.items()])
 
     return diff_loss_val
 
