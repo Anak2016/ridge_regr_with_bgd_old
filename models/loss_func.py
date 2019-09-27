@@ -47,7 +47,7 @@ class MSE:
         beta = Matrix(np.array(beta_sym))
 
         loss_func = (y - (x * beta)) * ones(beta.shape[1], 1)
-        loss_func = ones(1, loss_func.shape[0]) * square_matrix_element_wise(loss_func) / 400 # mean
+        loss_func = ones(1, loss_func.shape[0]) * square_matrix_element_wise(loss_func)
         # loss_func = ones(1, loss_func.shape[0]) * square_matrix_element_wise(loss_func)  # mean
         # loss_func = np.random.rand(1,1)
 

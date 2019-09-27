@@ -2,22 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="57fc7a7b-3d6e-4a22-9a28-a13d31fcd5f5" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/performance_matrix/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/performance_matrix/accuracy" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/StickySelectionHighlights.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/StickySelectionHighlights.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/ridge_regr_with_bgd.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/ridge_regr_with_bgd.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.txt" beforeDir="false" afterPath="$PROJECT_DIR$/README.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/arg_parser.py" beforeDir="false" afterPath="$PROJECT_DIR$/arg_parser.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/models/loss_func.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/loss_func.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/models/ridge_regr.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/ridge_regr.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/plotting/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/plotting/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/preprocessing/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/preprocessing/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/something/something.py" beforeDir="false" afterPath="$PROJECT_DIR$/something/something.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utility_code/my_utility.py" beforeDir="false" afterPath="$PROJECT_DIR$/utility_code/my_utility.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/todo.txt" beforeDir="false" afterPath="$PROJECT_DIR$/todo.txt" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -96,7 +85,7 @@
         </ENTRIES>
       </EXTENSION>
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/models/ridge_regr.py" />
-      <option name="PARAMETERS" value="--lmda 0.01 --lr 0.001 --verbose" />
+      <option name="PARAMETERS" value="--lmda 0.01 --lr 1 --verbose" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -141,28 +130,21 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/models/ridge_regr.py</url>
-          <line>167</line>
-          <option name="timeStamp" value="60" />
+          <line>147</line>
+          <option name="timeStamp" value="71" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/models/ridge_regr.py</url>
-          <line>147</line>
-          <option name="timeStamp" value="71" />
+          <line>41</line>
+          <option name="timeStamp" value="77" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
     <watches-manager>
       <configuration name="PythonConfigurationType">
-        <watch expression="v['diff_val'].shape" language="Python" />
-        <watch expression="v['diff_val']" language="Python" />
-        <watch expression="data" language="Python" />
-        <watch expression="self.y" language="Python" />
-        <watch expression="v['diff_val']" language="Python" />
-        <watch expression="data.dot(v[&quot;val&quot;].T)).dot(data)" language="Python" />
-        <watch expression="data.dot(v[&quot;val&quot;].T)).dot(data)" language="Python" />
-        <watch expression="data.dot(v[&quot;val&quot;].T)" language="Python" />
-        <watch expression="(self.y - data.dot(v[&quot;val&quot;].T))" language="Python" />
-        <watch expression="- (2 * (self.y - data.dot(v[&quot;val&quot;].T)).dot(data) + 2 * args.lmda * v['val']) # this is wrong" language="Python" />
+        <watch expression="all_params" language="Python" />
+        <watch expression="self.loss_func.run_batch(loop_num).subs([(name, val) for name, val in all_params.items()])" language="Python" />
+        <watch expression="self.register_params" language="Python" />
       </configuration>
     </watches-manager>
   </component>

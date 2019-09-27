@@ -37,8 +37,7 @@ class MessagePassing():
 
     def get_loss_val(self, loop_num):
         '''refactor code get_loss_val and differentiate FOR NOW THIS IS FOR READBILIT AND DEBUGGIN'''
-        all_params = {f"{v['name']}{i}": v['val'][i] for k, v in self.register_params.items() for i in
-                                  range(0, v['val'].shape[0])}
+        all_params = {f"{v['name']}{i}": v['val'][i] for k, v in self.register_params.items() for i in range(0, v['val'].shape[0])}
         # all_params = {name: val for name, val in all_params.items()}
         loss_val = self.loss_func.run_batch(loop_num).subs([(name, val) for name, val in all_params.items()])
         return loss_val
@@ -60,14 +59,15 @@ class MessagePassing():
         for k, v in self.register_params.items():
             if k.startswith('var_'):
                 #TODO here>>  create derivative equation of diff_val
+                #       >> why is value of beta so large?
+                #           >>do i need to normalize beta first?
                 #       >> why is it diverging??
                 #       >> did i normalized this?
                 # v['diff_val'] =   2 * (self.data * np.expand_dims(self.data.dot(v["val"]), axis=1) + 2 * args.lmda * v["val"].squeeze()).sum(axis =0)
-                v['diff_val'] =  - (2 * (self.y - data.dot(v["val"].T)).dot(data) + 2 * args.lmda * v['val']) # this is wrong
-                # v['diff_val'] = np.empty_like(v['diff_val']).astype(np.float64)
-                #                 # print(v['diff_val'])
+                v['diff_val'] =  - (2 * (self.y - self.data.dot(v["val"].T)).dot(self.data) + 2 * args.lmda * v['val']) # this is wrong
                 self.register_params[k]['val'] = self.step(v['val'], v['diff_val'])  # update beta value
 
+        #TODO here>> mayb loss_func is implimented incorreclty.
         loss_val = np.array(self.get_loss_val(loop_num)).squeeze()
         self.loss_val_hist.append(loss_val)
         self.loss_val = loss_val
@@ -176,13 +176,8 @@ class RidgeRegression(MessagePassing):
         # self.register(intercept=self.intercept)
 
     def _initialize_parameters(self):
-        # self.beta = np.random.uniform((data.shape[1],))
-        # self.beta = np.zeros((self.x.shape[0],self.x.shape[1],))
-        self.beta = np.zeros((1,self.x.shape[1]+1))
+        self.beta = np.zeros((1,self.x.shape[1]))
         self.beta = glorot(self.beta)
-        self.x = np.hstack((self.x,np.ones((self.x.shape[0],1))))
-        # self.intercept = np.zeros((self.x.shape[0]))
-        # self.intercept = glorot(self.beta)
 
     def train(self, x ,y, cv_num):
         self.x, self.y = x, y
@@ -196,7 +191,7 @@ class RidgeRegression(MessagePassing):
         if args.report_performance:
             print(f'loss_val = {sum(loss_epoch)/len(loss_epoch)}')
 
-    def pred(self, x, y):
+    def predict(self, x, y):
         '''
         predict performance from test set
         :return:
@@ -211,7 +206,8 @@ class RidgeRegression(MessagePassing):
             print(f'loss_val = {self.loss_val}')
 
     def apply_formular(self,x):
-        return self.x.dot(self.beta.T)
+        # return self.x.dot(self.beta.T)
+        return (self.y - (self.x.dot(self.beta))).sum(axis=0)
 
     def run_batch(self, epoch_num, cv_num):
         # self.forward()

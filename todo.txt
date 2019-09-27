@@ -1,2 +1,3 @@
+> check all loss function (RSS + l1) and check if code for equation is correct.
 > create loss function obecjt
     : loss function is initialized by components that erquired to calculated loss function
