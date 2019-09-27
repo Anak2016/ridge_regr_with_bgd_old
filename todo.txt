@@ -1,0 +1,2 @@
+> create loss function obecjt
+    : loss function is initialized by components that erquired to calculated loss function
